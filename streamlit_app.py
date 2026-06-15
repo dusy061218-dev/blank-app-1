@@ -75,33 +75,68 @@ st.title("📈 eCommerce Customer Intelligence Platform")
 st.markdown("A unified control panel tracking data integrity metrics alongside active user behaviors.")
 st.markdown("---")
 
-# --- IMPROVED EXECUTIVE KPI SCORE CARDS WITH BORDERS ---
-kpi_1, kpi_2, kpi_3, kpi_4 = st.columns(4)
+# --- EXPANDED METRIC SCORE CARDS FOR EACH VARIABLE ---
+st.markdown("### 📋 Cohort Performance Cards")
+kpi_row1 = st.columns(3)
+kpi_row2 = st.columns(3)
 
-with kpi_1:
+# Calculate system baselines to compute accurate dynamic delta indicators
+has_data = not df_filtered.empty
+
+# Row 1: Primary Target KPIs
+with kpi_row1[0]:
     with st.container(border=True):
         st.metric(
-            label="👥 Cohort Footprint", 
+            label="👥 Filtered Cohort Size", 
             value=f"{len(df_filtered):,}", 
-            delta=f"{len(df_filtered) - len(df_raw)} items filtered" if len(df_filtered) != len(df_raw) else None
+            delta=f"{len(df_filtered) - len(df_raw)} records vs total" if len(df_filtered) != len(df_raw) else None
         )
-with kpi_2:
+with kpi_row1[1]:
     with st.container(border=True):
+        current_spend = df_filtered['Yearly Amount Spent'].mean() if has_data else 0
+        base_spend = df_raw['Yearly Amount Spent'].mean()
         st.metric(
-            label="💰 Mean Annual Value", 
-            value=f"${df_filtered['Yearly Amount Spent'].mean():,.2f}" if not df_filtered.empty else "$0.00"
+            label="💰 Avg. Yearly Amount Spent", 
+            value=f"${current_spend:,.2f}",
+            delta=f"${current_spend - base_spend:+.2f} vs baseline" if len(df_filtered) != len(df_raw) else None
         )
-with kpi_3:
+with kpi_row1[2]:
     with st.container(border=True):
+        current_member = df_filtered['Length of Membership'].mean() if has_data else 0
+        base_member = df_raw['Length of Membership'].mean()
         st.metric(
-            label="⏳ Avg Membership Term", 
-            value=f"{df_filtered['Length of Membership'].mean():.2f} Yrs" if not df_filtered.empty else "0.0 Yrs"
+            label="⏳ Avg. Length of Membership", 
+            value=f"{current_member:.2f} Yrs",
+            delta=f"{current_member - base_member:+.2f} Yrs vs baseline" if len(df_filtered) != len(df_raw) else None
         )
-with kpi_4:
+
+# Row 2: Behavioral Usage KPIs
+with kpi_row2[0]:
     with st.container(border=True):
+        current_sess = df_filtered['Avg. Session Length'].mean() if has_data else 0
+        base_sess = df_raw['Avg. Session Length'].mean()
         st.metric(
-            label="📱 Active Mobile Usage", 
-            value=f"{df_filtered['Time on App'].mean():.1f} min" if not df_filtered.empty else "0.0 min"
+            label="💻 Avg. Session Length", 
+            value=f"{current_sess:.1f} min",
+            delta=f"{current_sess - base_sess:+.1f} min vs baseline" if len(df_filtered) != len(df_raw) else None
+        )
+with kpi_row2[1]:
+    with st.container(border=True):
+        current_app = df_filtered['Time on App'].mean() if has_data else 0
+        base_app = df_raw['Time on App'].mean()
+        st.metric(
+            label="📱 Avg. Time on App", 
+            value=f"{current_app:.1f} min",
+            delta=f"{current_app - base_app:+.1f} min vs baseline" if len(df_filtered) != len(df_raw) else None
+        )
+with kpi_row2[2]:
+    with st.container(border=True):
+        current_web = df_filtered['Time on Website'].mean() if has_data else 0
+        base_web = df_raw['Time on Website'].mean()
+        st.metric(
+            label="🌐 Avg. Time on Website", 
+            value=f"{current_web:.1f} min",
+            delta=f"{current_web - base_web:+.1f} min vs baseline" if len(df_filtered) != len(df_raw) else None
         )
 
 st.markdown("---")
