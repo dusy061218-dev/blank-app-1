@@ -42,10 +42,15 @@ var_metadata = {
     "Yearly Amount Spent": "Sum total merchant transactional values over a rolling 12-month window."
 }
 
-# --- SIDEBAR INTERFACE: DYNAMIC ATTRIBUTE FILTERS & INFO ---
+# --- INITIAL FILTER STATE COLLECTION ---
+# We collect slider boundaries from the sidebar first to create the subset frame
+numeric_filters = {}
+selected_blocks = []
+
+# --- SIDEBAR INTERFACE: DYNAMIC ATTRIBUTE FILTERS, INFO & LOCAL KPIS ---
 with st.sidebar:
     st.markdown("## 🛡️ Variable Governance Console")
-    st.markdown("Inspect metadata constraints and configure granular filters per variable column.")
+    st.markdown("Inspect metadata constraints, subset KPIs, and configure filters per column.")
     st.markdown("---")
     
     # 1. Categorical Dimension: Warehouse Block
@@ -62,22 +67,14 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🔢 Numerical Feature Guardrails")
     
-    # Storage maps for programmatic query execution strings
-    numeric_filters = {}
-    
-    # Loop across numerical columns to programmatically output Info blocks and Slider tools
+    # Render interactive controls and collect positions
     for col_name, info_text in var_metadata.items():
         with st.expander(f"⚙️ {col_name}", expanded=False):
             st.markdown(f"**Data Info:** *{info_text}*")
             
-            # Extract absolute tracking bounds from parent frame
             min_val = float(df_raw[col_name].min())
             max_val = float(df_raw[col_name].max())
-            mean_val = float(df_raw[col_name].mean())
             
-            st.markdown(f"📊 *Global Mean Vector:* `{mean_val:.2f}`")
-            
-            # Interactive Range Constraint Slider
             numeric_filters[col_name] = st.slider(
                 "Filter Value Boundaries",
                 min_value=min_val,
@@ -87,15 +84,33 @@ with st.sidebar:
                 format="%.1f"
             )
 
-# Execute Global Multi-Variable Dataset Mutation Base Check
+# Execute Global Multi-Variable Mutation to obtain active subset
 df_filtered = df_raw.copy()
-
-# Apply Categorical Filter
 df_filtered = df_filtered[df_filtered['warehouse_block'].isin(selected_blocks)]
-
-# Programmatically chain numerical validation filters
 for col_name, bounds in numeric_filters.items():
     df_filtered = df_filtered[df_filtered[col_name].between(bounds[0], bounds[1])]
+
+has_data = not df_filtered.empty
+
+# --- SIDEBAR LOCAL KPI INJECTION LOOP ---
+# Re-entering the sidebar context to inject the dynamic subset metrics under the sliders
+with st.sidebar:
+    st.markdown("---")
+    st.markdown("### 📊 Local Variable Sub-Metrics")
+    st.caption("Real-time summary indicators for current filtered variables:")
+    
+    for col_name in var_metadata.keys():
+        if has_data:
+            sub_mean = df_filtered[col_name].mean()
+            sub_delta = sub_mean - df_raw[col_name].mean()
+            
+            # Formatting decisions depending on currency formatting needs
+            if "Spent" in col_name:
+                st.metric(label=f"Filtered Mean {col_name}", value=f"${sub_mean:,.2f}", delta=f"${sub_delta:+.2f} vs global pool")
+            else:
+                st.metric(label=f"Filtered Mean {col_name}", value=f"{sub_mean:.2f}", delta=f"{sub_delta:+.2f} vs global pool")
+        else:
+            st.metric(label=f"Filtered Mean {col_name}", value="N/A")
 
 
 # --- MAIN DASHBOARD INTERFACE ---
@@ -107,8 +122,6 @@ st.markdown("---")
 st.markdown("### 📋 Cohort Performance Cards")
 kpi_row1 = st.columns(3)
 kpi_row2 = st.columns(3)
-
-has_data = not df_filtered.empty
 
 # Row 1: Primary Target KPIs
 with kpi_row1[0]:
