@@ -48,7 +48,7 @@ with st.sidebar:
     st.markdown("Inspect metadata constraints and configure filters per column.")
     st.markdown("---")
     
-    # 1. Categorical Dimension: Warehouse Block
+    # Categorical Dimension: Warehouse Block
     st.markdown("### 🧩 Categorical Fields")
     with st.expander("warehouse_block Configuration", expanded=True):
         st.caption("Physical regional hub cluster identifiers [A-F].")
@@ -95,65 +95,46 @@ st.title("📈 eCommerce Customer Intelligence Platform")
 st.markdown("A unified control panel tracking data integrity metrics alongside active user behaviors.")
 st.markdown("---")
 
-# --- CENTRALIZED VARIABLE METRIC KPI CARDS (MIDDLE SECTION) ---
-st.markdown("### 📋 Cohort Performance Cards")
-kpi_row1 = st.columns(3)
-kpi_row2 = st.columns(3)
+# --- NEW ADDITION: CENTRALIZED EXECUTIVE KPI RIBBON ---
+st.markdown("### 📊 Executive Summary Ribbon")
+kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
 
-# Row 1: Primary Targets & Financial Indicators
-with kpi_row1[0]:
+with kpi_col1:
     with st.container(border=True):
         st.metric(
-            label="👥 Filtered Cohort Size", 
+            label="👥 Active Cohort Pool", 
             value=f"{len(df_filtered):,}", 
-            delta=f"{len(df_filtered) - len(df_raw)} records vs total" if len(df_filtered) != len(df_raw) else None
+            delta=f"{len(df_filtered) - len(df_raw)} rows filtered" if len(df_filtered) != len(df_raw) else None
         )
-with kpi_row1[1]:
+
+with kpi_col2:
     with st.container(border=True):
         current_spend = df_filtered['Yearly Amount Spent'].mean() if has_data else 0
         base_spend = df_raw['Yearly Amount Spent'].mean()
         st.metric(
-            label="💰 Avg. Yearly Amount Spent", 
+            label="💰 Avg. Annual Spending", 
             value=f"${current_spend:,.2f}",
-            delta=f"${current_spend - base_spend:+.2f} vs global pool" if len(df_filtered) != len(df_raw) else None
+            delta=f"${current_spend - base_spend:+.2f} vs company base" if len(df_filtered) != len(df_raw) else None
         )
-with kpi_row1[2]:
+
+with kpi_col3:
     with st.container(border=True):
         current_member = df_filtered['Length of Membership'].mean() if has_data else 0
         base_member = df_raw['Length of Membership'].mean()
         st.metric(
-            label="⏳ Avg. Length of Membership", 
-            value=f"{current_member:.2f} Yrs",
-            delta=f"{current_member - base_member:+.2f} Yrs vs global pool" if len(df_filtered) != len(df_raw) else None
+            label="⏳ Avg. Customer Loyalty", 
+            value=f"{current_member:.1f} Yrs",
+            delta=f"{current_member - base_member:+.1f} Yrs vs company base" if len(df_filtered) != len(df_raw) else None
         )
 
-# Row 2: Behavioral Storefront Interaction Engagement KPIs
-with kpi_row2[0]:
-    with st.container(border=True):
-        current_sess = df_filtered['Avg. Session Length'].mean() if has_data else 0
-        base_sess = df_raw['Avg. Session Length'].mean()
-        st.metric(
-            label="💻 Avg. Session Length", 
-            value=f"{current_sess:.1f} min",
-            delta=f"{current_sess - base_sess:+.1f} min vs global pool" if len(df_filtered) != len(df_raw) else None
-        )
-with kpi_row2[1]:
+with kpi_col4:
     with st.container(border=True):
         current_app = df_filtered['Time on App'].mean() if has_data else 0
         base_app = df_raw['Time on App'].mean()
         st.metric(
-            label="📱 Avg. Time on App", 
+            label="📱 Avg. Mobile App Session", 
             value=f"{current_app:.1f} min",
-            delta=f"{current_app - base_app:+.1f} min vs global pool" if len(df_filtered) != len(df_raw) else None
-        )
-with kpi_row2[2]:
-    with st.container(border=True):
-        current_web = df_filtered['Time on Website'].mean() if has_data else 0
-        base_web = df_raw['Time on Website'].mean()
-        st.metric(
-            label="🌐 Avg. Time on Website", 
-            value=f"{current_web:.1f} min",
-            delta=f"{current_web - base_web:+.1f} min vs global pool" if len(df_filtered) != len(df_raw) else None
+            delta=f"{current_app - base_app:+.1f} min vs company base" if len(df_filtered) != len(df_raw) else None
         )
 
 st.markdown("---")
