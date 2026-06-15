@@ -75,30 +75,34 @@ st.title("📈 eCommerce Customer Intelligence Platform")
 st.markdown("A unified control panel tracking data integrity metrics alongside active user behaviors.")
 st.markdown("---")
 
-# Section 1: Executive KPI Scorecards
+# --- IMPROVED EXECUTIVE KPI SCORE CARDS WITH BORDERS ---
 kpi_1, kpi_2, kpi_3, kpi_4 = st.columns(4)
 
 with kpi_1:
-    st.metric(
-        label="Cohort Footprint", 
-        value=f"{len(df_filtered):,}", 
-        delta=f"{len(df_filtered) - len(df_raw)} from base pool" if len(df_filtered) != len(df_raw) else None
-    )
+    with st.container(border=True):
+        st.metric(
+            label="👥 Cohort Footprint", 
+            value=f"{len(df_filtered):,}", 
+            delta=f"{len(df_filtered) - len(df_raw)} items filtered" if len(df_filtered) != len(df_raw) else None
+        )
 with kpi_2:
-    st.metric(
-        label="Mean Annual Value", 
-        value=f"${df_filtered['Yearly Amount Spent'].mean():,.2f}" if not df_filtered.empty else "$0.00"
-    )
+    with st.container(border=True):
+        st.metric(
+            label="💰 Mean Annual Value", 
+            value=f"${df_filtered['Yearly Amount Spent'].mean():,.2f}" if not df_filtered.empty else "$0.00"
+        )
 with kpi_3:
-    st.metric(
-        label="Avg Membership Term", 
-        value=f"{df_filtered['Length of Membership'].mean():.2f} Yrs" if not df_filtered.empty else "0.0 Yrs"
-    )
+    with st.container(border=True):
+        st.metric(
+            label="⏳ Avg Membership Term", 
+            value=f"{df_filtered['Length of Membership'].mean():.2f} Yrs" if not df_filtered.empty else "0.0 Yrs"
+        )
 with kpi_4:
-    st.metric(
-        label="Active Mobile App Usage", 
-        value=f"{df_filtered['Time on App'].mean():.1f} min" if not df_filtered.empty else "0.0 min"
-    )
+    with st.container(border=True):
+        st.metric(
+            label="📱 Active Mobile Usage", 
+            value=f"{df_filtered['Time on App'].mean():.1f} min" if not df_filtered.empty else "0.0 min"
+        )
 
 st.markdown("---")
 
