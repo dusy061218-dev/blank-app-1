@@ -30,45 +30,73 @@ def load_data():
             'Email': [f"user_{i}@example.com" for i in range(400)]
         })
 
-# Initialize Core Dataset
+# Initialize Baseline Dataset
 df_raw = load_data()
 
-# --- SIDEBAR INTERFACE: SYSTEM CONTROLS ---
-with st.sidebar:
-    st.markdown("## 🛡️ Control Console")
-    st.markdown("Configure operational filters and evaluation bounds below.")
-    st.markdown("---")
-    
-    # Section A: Segment Subsetting
-    st.markdown("### 🧩 Regional Segmentation")
-    available_blocks = sorted(df_raw['warehouse_block'].unique())
-    selected_blocks = st.multiselect(
-        "Fulfillment Zones", 
-        options=available_blocks, 
-        default=available_blocks,
-        help="Filter the entire platform scope based on regional warehouse blocks."
-    )
-    
-    # Section B: Range Truncation
-    st.markdown("### 💸 Revenue Guardrails")
-    min_spend = float(df_raw['Yearly Amount Spent'].min())
-    max_spend = float(df_raw['Yearly Amount Spent'].max())
-    selected_spend_range = st.slider(
-        "Annual Spending Limits ($)",
-        min_value=min_spend,
-        max_value=max_spend,
-        value=(min_spend, max_spend),
-        format="$%.2f"
-    )
-    
-    st.markdown("---")
-    st.markdown("💡 *Graphs, raw query tables, and business KPIs dynamically adjust based on your chosen criteria above.*")
+# Dictionary to preserve configuration parameters for references
+var_metadata = {
+    "Avg. Session Length": "Average duration of live storefront platform sessions calibrated in minutes.",
+    "Time on App": "Calculated continuous minutes tracked across mobile client device deployments.",
+    "Time on Website": "Chronological tracking of standard desktop browser login sessions.",
+    "Length of Membership": "Total calculated tenure years the client has maintained active premium status.",
+    "Yearly Amount Spent": "Sum total merchant transactional values over a rolling 12-month window."
+}
 
-# Execute Global Frame Mutations Based on Filter Criteria
-df_filtered = df_raw[
-    (df_raw['warehouse_block'].isin(selected_blocks)) & 
-    (df_raw['Yearly Amount Spent'].between(selected_spend_range[0], selected_spend_range[1]))
-]
+# --- SIDEBAR INTERFACE: DYNAMIC ATTRIBUTE FILTERS & INFO ---
+with st.sidebar:
+    st.markdown("## 🛡️ Variable Governance Console")
+    st.markdown("Inspect metadata constraints and configure granular filters per variable column.")
+    st.markdown("---")
+    
+    # 1. Categorical Dimension: Warehouse Block
+    st.markdown("### 🧩 Categorical Fields")
+    with st.expander("warehouse_block Configuration", expanded=True):
+        st.caption("Physical regional hub cluster identifiers [A-F].")
+        available_blocks = sorted(df_raw['warehouse_block'].unique())
+        selected_blocks = st.multiselect(
+            "Filter Fulfillment Zones", 
+            options=available_blocks, 
+            default=available_blocks
+        )
+    
+    st.markdown("---")
+    st.markdown("### 🔢 Numerical Feature Guardrails")
+    
+    # Storage maps for programmatic query execution strings
+    numeric_filters = {}
+    
+    # Loop across numerical columns to programmatically output Info blocks and Slider tools
+    for col_name, info_text in var_metadata.items():
+        with st.expander(f"⚙️ {col_name}", expanded=False):
+            st.markdown(f"**Data Info:** *{info_text}*")
+            
+            # Extract absolute tracking bounds from parent frame
+            min_val = float(df_raw[col_name].min())
+            max_val = float(df_raw[col_name].max())
+            mean_val = float(df_raw[col_name].mean())
+            
+            st.markdown(f"📊 *Global Mean Vector:* `{mean_val:.2f}`")
+            
+            # Interactive Range Constraint Slider
+            numeric_filters[col_name] = st.slider(
+                "Filter Value Boundaries",
+                min_value=min_val,
+                max_value=max_val,
+                value=(min_val, max_val),
+                key=f"slider_{col_name}",
+                format="%.1f"
+            )
+
+# Execute Global Multi-Variable Dataset Mutation Base Check
+df_filtered = df_raw.copy()
+
+# Apply Categorical Filter
+df_filtered = df_filtered[df_filtered['warehouse_block'].isin(selected_blocks)]
+
+# Programmatically chain numerical validation filters
+for col_name, bounds in numeric_filters.items():
+    df_filtered = df_filtered[df_filtered[col_name].between(bounds[0], bounds[1])]
+
 
 # --- MAIN DASHBOARD INTERFACE ---
 st.title("📈 eCommerce Customer Intelligence Platform")
@@ -80,7 +108,6 @@ st.markdown("### 📋 Cohort Performance Cards")
 kpi_row1 = st.columns(3)
 kpi_row2 = st.columns(3)
 
-# Calculate system baselines to compute accurate dynamic delta indicators
 has_data = not df_filtered.empty
 
 # Row 1: Primary Target KPIs
@@ -141,12 +168,12 @@ with kpi_row2[2]:
 
 st.markdown("---")
 
-# Section 2: Tabbed Architecture
+# Section 2: Tabbed Visualization Architecture 
 tab_visuals, tab_governance = st.tabs(["📊 Behavior Analysis Suite", "📐 Schema Governance & Records"])
 
 with tab_visuals:
     if df_filtered.empty:
-        st.error("❌ **Operational Exception:** No active customer accounts match the selected parameters. Adjust your sidebar filters to process data.")
+        st.error("❌ **Operational Exception:** No active customer accounts match the selected parameter bounds. Adjust your variable filters to render data views.")
     else:
         # Dynamic Feature Selector Row
         select_col1, select_col2 = st.columns([2, 2])
@@ -167,7 +194,7 @@ with tab_visuals:
             )
             
             # Scatter Plot Element
-            points = scatter_base.mark_circle(size=75, opacity=0.6, color="#2b5c8f").encode(
+            points = scatter_base.mark_circle(size=75, opacity=0.6).encode(
                 color=alt.Color('warehouse_block:N', title="Hub", scale=alt.Scale(scheme='tableau10')),
                 tooltip=['Email', 'Length of Membership', 'Yearly Amount Spent', 'warehouse_block']
             )
