@@ -42,15 +42,10 @@ var_metadata = {
     "Yearly Amount Spent": "Sum total merchant transactional values over a rolling 12-month window."
 }
 
-# --- INITIAL FILTER STATE COLLECTION ---
-# We collect slider boundaries from the sidebar first to create the subset frame
-numeric_filters = {}
-selected_blocks = []
-
-# --- SIDEBAR INTERFACE: DYNAMIC ATTRIBUTE FILTERS, INFO & LOCAL KPIS ---
+# --- SIDEBAR INTERFACE: DYNAMIC ATTRIBUTE FILTERS & INFO ---
 with st.sidebar:
     st.markdown("## 🛡️ Variable Governance Console")
-    st.markdown("Inspect metadata constraints, subset KPIs, and configure filters per column.")
+    st.markdown("Inspect metadata constraints and configure filters per column.")
     st.markdown("---")
     
     # 1. Categorical Dimension: Warehouse Block
@@ -66,6 +61,8 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### 🔢 Numerical Feature Guardrails")
+    
+    numeric_filters = {}
     
     # Render interactive controls and collect positions
     for col_name, info_text in var_metadata.items():
@@ -92,38 +89,18 @@ for col_name, bounds in numeric_filters.items():
 
 has_data = not df_filtered.empty
 
-# --- SIDEBAR LOCAL KPI INJECTION LOOP ---
-# Re-entering the sidebar context to inject the dynamic subset metrics under the sliders
-with st.sidebar:
-    st.markdown("---")
-    st.markdown("### 📊 Local Variable Sub-Metrics")
-    st.caption("Real-time summary indicators for current filtered variables:")
-    
-    for col_name in var_metadata.keys():
-        if has_data:
-            sub_mean = df_filtered[col_name].mean()
-            sub_delta = sub_mean - df_raw[col_name].mean()
-            
-            # Formatting decisions depending on currency formatting needs
-            if "Spent" in col_name:
-                st.metric(label=f"Filtered Mean {col_name}", value=f"${sub_mean:,.2f}", delta=f"${sub_delta:+.2f} vs global pool")
-            else:
-                st.metric(label=f"Filtered Mean {col_name}", value=f"{sub_mean:.2f}", delta=f"{sub_delta:+.2f} vs global pool")
-        else:
-            st.metric(label=f"Filtered Mean {col_name}", value="N/A")
-
 
 # --- MAIN DASHBOARD INTERFACE ---
 st.title("📈 eCommerce Customer Intelligence Platform")
 st.markdown("A unified control panel tracking data integrity metrics alongside active user behaviors.")
 st.markdown("---")
 
-# --- EXPANDED METRIC SCORE CARDS FOR EACH VARIABLE ---
+# --- CENTRALIZED VARIABLE METRIC KPI CARDS (MIDDLE SECTION) ---
 st.markdown("### 📋 Cohort Performance Cards")
 kpi_row1 = st.columns(3)
 kpi_row2 = st.columns(3)
 
-# Row 1: Primary Target KPIs
+# Row 1: Primary Targets & Financial Indicators
 with kpi_row1[0]:
     with st.container(border=True):
         st.metric(
@@ -138,7 +115,7 @@ with kpi_row1[1]:
         st.metric(
             label="💰 Avg. Yearly Amount Spent", 
             value=f"${current_spend:,.2f}",
-            delta=f"${current_spend - base_spend:+.2f} vs baseline" if len(df_filtered) != len(df_raw) else None
+            delta=f"${current_spend - base_spend:+.2f} vs global pool" if len(df_filtered) != len(df_raw) else None
         )
 with kpi_row1[2]:
     with st.container(border=True):
@@ -147,10 +124,10 @@ with kpi_row1[2]:
         st.metric(
             label="⏳ Avg. Length of Membership", 
             value=f"{current_member:.2f} Yrs",
-            delta=f"{current_member - base_member:+.2f} Yrs vs baseline" if len(df_filtered) != len(df_raw) else None
+            delta=f"{current_member - base_member:+.2f} Yrs vs global pool" if len(df_filtered) != len(df_raw) else None
         )
 
-# Row 2: Behavioral Usage KPIs
+# Row 2: Behavioral Storefront Interaction Engagement KPIs
 with kpi_row2[0]:
     with st.container(border=True):
         current_sess = df_filtered['Avg. Session Length'].mean() if has_data else 0
@@ -158,7 +135,7 @@ with kpi_row2[0]:
         st.metric(
             label="💻 Avg. Session Length", 
             value=f"{current_sess:.1f} min",
-            delta=f"{current_sess - base_sess:+.1f} min vs baseline" if len(df_filtered) != len(df_raw) else None
+            delta=f"{current_sess - base_sess:+.1f} min vs global pool" if len(df_filtered) != len(df_raw) else None
         )
 with kpi_row2[1]:
     with st.container(border=True):
@@ -167,7 +144,7 @@ with kpi_row2[1]:
         st.metric(
             label="📱 Avg. Time on App", 
             value=f"{current_app:.1f} min",
-            delta=f"{current_app - base_app:+.1f} min vs baseline" if len(df_filtered) != len(df_raw) else None
+            delta=f"{current_app - base_app:+.1f} min vs global pool" if len(df_filtered) != len(df_raw) else None
         )
 with kpi_row2[2]:
     with st.container(border=True):
@@ -176,7 +153,7 @@ with kpi_row2[2]:
         st.metric(
             label="🌐 Avg. Time on Website", 
             value=f"{current_web:.1f} min",
-            delta=f"{current_web - base_web:+.1f} min vs baseline" if len(df_filtered) != len(df_raw) else None
+            delta=f"{current_web - base_web:+.1f} min vs global pool" if len(df_filtered) != len(df_raw) else None
         )
 
 st.markdown("---")
